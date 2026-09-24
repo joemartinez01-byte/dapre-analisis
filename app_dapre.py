@@ -15,12 +15,28 @@ st.set_page_config(
 # 2. Carga optimizada de datos con conversión explícita de tipos
 @st.cache_data
 def cargar_datos():
-  ruta = r"D:\DAPRE_Analisis\datos\CONTRATOS_DAPRE_2022_2026_LIMPIO.xlsx"
+  # Definir posibles rutas donde puede estar el archivo
+  ruta_carpeta = os.path.join("datos", "CONTRATOS_DAPRE_2022_2026_LIMPIO.xlsx")
+  ruta_raiz = "CONTRATOS_DAPRE_2022_2026_LIMPIO.xlsx"
+
+  # Verificar cuál existe
+  if os.path.exists(ruta_carpeta):
+    ruta = ruta_carpeta
+  elif os.path.exists(ruta_raiz):
+    ruta = ruta_raiz
+  else:
+    st.error(
+        "❌ No se encontró el archivo 'CONTRATOS_DAPRE_2022_2026_LIMPIO.xlsx' en"
+        " el repositorio."
+    )
+    st.stop()
+
   df = pd.read_excel(ruta)
 
+  # Convertir año
   df["anio_reporte"] = df["anio_reporte"].fillna(0).astype(int)
 
-  # Convertir columnas de texto a string puro para prevenir errores en PyArrow/Streamlit
+  # Normalizar textos para evitar errores de tipo
   cols_texto = [
       "numero_contrato",
       "modalidad_seleccion",
@@ -30,7 +46,7 @@ def cargar_datos():
   ]
   for col in cols_texto:
     if col in df.columns:
-      df[col] = df[col].astype(str).str.strip()
+      df[col] = df[col].fillna("SIN ESPECIFICAR").astype(str).str.strip()
 
   return df
 
